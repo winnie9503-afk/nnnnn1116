@@ -1,0 +1,1320 @@
+
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>RawStream｜照片與影片共用平台</title>
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0f172a;
+  --card: #17243b;
+  --line: #334155;
+  --text: #f8fafc;
+  --muted: #a8b6cb;
+  --sky: #38bdf8;
+  --green: #34d399;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Noto Sans TC", sans-serif;
+  line-height: 1.55;
+}
+
+button, input { font: inherit; }
+button, a { touch-action: manipulation; }
+button { cursor: pointer; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+a { color: inherit; }
+
+.wrap {
+  width: min(1050px, 100%);
+  margin: auto;
+  padding: 0 18px;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #0f172aee;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.head {
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brand {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.status {
+  font-size: 12px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+main {
+  padding-top: 34px !important;
+  padding-bottom: 55px !important;
+}
+
+h1 {
+  font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.3;
+  text-align: center;
+  margin: 0 0 12px;
+}
+
+h2 {
+  font-size: 21px;
+  margin: 0;
+}
+
+p { margin: 8px 0; }
+
+.intro {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 25px;
+  color: var(--muted);
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 24px;
+}
+
+.picker {
+  border: 2px dashed #475569;
+  border-radius: 16px;
+  padding: 36px 15px;
+  text-align: center;
+  transition: .2s;
+  background: #101b30;
+}
+
+.picker.drag {
+  border-color: var(--sky);
+  background: #0c3246;
+}
+
+.picker-title {
+  font-size: 21px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.btn {
+  border: 0;
+  border-radius: 12px;
+  min-height: 46px;
+  padding: 11px 18px;
+  font-weight: 700;
+  color: white;
+  background: #334155;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.btn.primary {
+  background: linear-gradient(110deg, #0284c7, #4f46e5);
+}
+
+.btn.green {
+  background: #059669;
+}
+
+.btn.outline {
+  border: 1px solid #475569;
+  background: #243148;
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.toolbar .actions { margin: 0; }
+
+.items {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.item {
+  background: #101b30;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.media {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: #020617;
+  object-fit: contain;
+  display: block;
+}
+
+.item-body { padding: 13px; }
+
+.filename {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.item-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.item-actions .btn {
+  flex: 1;
+  font-size: 13px;
+  padding: 9px;
+  min-height: 42px;
+}
+
+.progress {
+  background: #334155;
+  border-radius: 999px;
+  height: 9px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.progress > div {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+}
+
+.hidden { display: none !important; }
+
+input[type=search] {
+  width: min(260px, 100%);
+  background: #0f172a;
+  border: 1px solid #475569;
+  border-radius: 10px;
+  color: white;
+  padding: 11px 12px;
+  min-height: 44px;
+}
+
+.empty {
+  text-align: center;
+  padding: 32px;
+  color: var(--muted);
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+}
+
+#notice {
+  position: fixed;
+  z-index: 30;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  background: #243148;
+  border: 1px solid #64748b;
+  border-radius: 12px;
+  padding: 13px 16px;
+  box-shadow: 0 10px 30px #0008;
+  width: min(520px, calc(100% - 28px));
+  display: none;
+  overflow-wrap: anywhere;
+}
+
+.warn { color: #fda4af !important; }
+.okay { color: #6ee7b7 !important; }
+
+#dialog {
+  border: 1px solid #475569;
+  border-radius: 18px;
+  color: white;
+  background: #17243b;
+  width: min(520px, calc(100% - 22px));
+  padding: 24px;
+}
+
+#dialog::backdrop { background: #000b; }
+#dialog h3 { margin: 0 0 8px; }
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 22px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 850px) {
+  .items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 580px) {
+  .wrap { padding: 0 13px; }
+  .head { min-height: 64px; }
+  .brand { font-size: 16px; }
+
+  .status {
+    font-size: 11px;
+    max-width: 140px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  main { padding-top: 24px !important; }
+  .panel { padding: 14px; border-radius: 15px; }
+  .picker { padding: 25px 12px; }
+  .picker-title { font-size: 18px; }
+
+  .items { grid-template-columns: 1fr; }
+
+  .actions { flex-direction: column; }
+  .actions .btn { width: 100%; }
+
+  .toolbar { align-items: stretch; }
+  .toolbar input { width: 100%; }
+
+  .item-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .item-actions .btn {
+    width: 100%;
+    font-size: 13px;
+  }
+
+  .media { aspect-ratio: 16 / 9; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="wrap head">
+    <div>
+      <div class="brand">☁ RawStream</div>
+      <div class="small">原始照片與影片共用平台</div>
+    </div>
+    <div id="status" class="status">正在連線…</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>分享原始照片與高畫質影片</h1>
+  <p class="intro">
+    手機可從相簿選擇照片、影片；電腦可拖曳檔案。
+    上傳使用原始檔案，不在瀏覽器內縮小或重新編碼。
+  </p>
+
+  <section class="panel">
+    <div id="drop" class="picker">
+      <div style="font-size:42px">📷 🎬</div>
+      <div class="picker-title">選擇照片或影片</div>
+      <p class="small">
+        可一次選多個檔案；電腦也可以拖曳到這裡
+      </p>
+
+      <div class="actions">
+        <button class="btn primary" id="pickPhoto">
+          選擇照片
+        </button>
+        <button class="btn outline" id="pickVideo">
+          選擇影片
+        </button>
+        <button class="btn outline" id="pickBoth">
+          照片與影片
+        </button>
+      </div>
+    </div>
+
+    <input
+      id="photos"
+      type="file"
+      accept="image/*,.heic,.heif"
+      multiple
+      hidden
+    >
+
+    <input
+      id="videos"
+      type="file"
+      accept="video/*,.mov,.mkv,.avi,.m4v"
+      multiple
+      hidden
+    >
+
+    <input
+      id="both"
+      type="file"
+      accept="image/*,video/*,.heic,.heif,.mov,.mkv,.avi,.m4v"
+      multiple
+      hidden
+    >
+
+    <div id="queueSection" class="hidden" style="margin-top:24px">
+      <div class="toolbar">
+        <h2>
+          待上傳檔案
+          <span id="queueCount" class="small"></span>
+        </h2>
+
+        <div class="actions">
+          <button id="addMore" class="btn outline">
+            ＋加入檔案
+          </button>
+          <button id="clearQueue" class="btn outline">
+            清空
+          </button>
+          <button id="uploadAll" class="btn primary">
+            開始上傳
+          </button>
+        </div>
+      </div>
+
+      <div id="queue" class="items"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="toolbar">
+      <div>
+        <h2>
+          大家的照片與影片
+          <span id="count" class="small">0 個檔案</span>
+        </h2>
+        <div class="small">
+          透過 Firebase 即時同步，上傳後所有訪客都能瀏覽
+        </div>
+      </div>
+
+      <input
+        id="search"
+        type="search"
+        placeholder="搜尋檔案名稱…"
+        aria-label="搜尋檔案"
+      >
+    </div>
+
+    <div id="gallery" class="items"></div>
+
+    <div id="empty" class="empty">
+      正在載入共用影音庫…
+    </div>
+  </section>
+</main>
+
+<footer>
+  RawStream · 上傳是否成功、檔案大小與可下載性受
+  Cloudinary 方案及裝置限制
+</footer>
+
+<div id="notice" role="status" aria-live="polite"></div>
+
+<dialog id="dialog">
+  <h3>在手機儲存至相簿</h3>
+  <p id="dialogText" class="small"></p>
+  <div class="actions">
+    <button id="dialogOpen" class="btn primary">
+      開啟原始檔案
+    </button>
+    <button id="dialogClose" class="btn outline">
+      關閉
+    </button>
+  </div>
+</dialog>
+
+<script type="module">
+
+import {
+  initializeApp
+} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+
+import {
+  getAuth,
+  signInAnonymously
+} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot
+} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+// ==================================================
+// 1. Firebase 與 Cloudinary 設定
+// ==================================================
+// 請保留你的專案設定，不要在網頁中放入 API Secret。
+
+const SITE_CONFIG = {
+  cloudinaryCloudName: 'x5ia24uo',
+  cloudinaryUploadPreset: 'nnn_1115',
+
+  firebaseConfig: {
+    apiKey: 'AIzaSyAkZn-yy77eYBbdSu3xUe-5B_HC37ozziI',
+    authDomain: 'badd-3b3e9.firebaseapp.com',
+    projectId: 'badd-3b3e9',
+    storageBucket: 'badd-3b3e9.firebasestorage.app',
+    messagingSenderId: '754540713861',
+    appId: '1:754540713861:web:824fff7f5e97e7d8d216ec',
+    measurementId: 'G-S5MC6Z6T0C'
+  }
+};
+
+// Firestore 共用資料庫路徑識別名稱
+// 不要任意更改，否則可能無法看到原本資料。
+
+const GALLERY_ID = 'rawstream-shared-gallery';
+
+// ==================================================
+// 2. 全域變數與工具函式
+// ==================================================
+
+const $ = id => document.getElementById(id);
+
+const queued = [];
+
+let allRecords = [];
+let videosCol = null;
+let currentUser = null;
+let uploading = false;
+
+const bytes = n =>
+  n < 1024
+    ? `${n} B`
+    : n < 1048576
+      ? `${(n / 1024).toFixed(1)} KB`
+      : n < 1073741824
+        ? `${(n / 1048576).toFixed(1)} MB`
+        : `${(n / 1073741824).toFixed(2)} GB`;
+
+const isImage = file =>
+  file.type.startsWith('image/') ||
+  /\.(png|jpe?g|gif|webp|bmp|heic|heif|avif)$/i.test(file.name);
+
+const isVideo = file =>
+  file.type.startsWith('video/') ||
+  /\.(mp4|mov|mkv|webm|avi|m4v|wmv)$/i.test(file.name);
+
+const notify = (message, error = false) => {
+  const el = $('notice');
+
+  el.textContent = message;
+  el.style.display = 'block';
+  el.style.borderColor = error ? '#fb7185' : '#475569';
+
+  clearTimeout(notify.timer);
+
+  notify.timer = setTimeout(() => {
+    el.style.display = 'none';
+  }, 6500);
+};
+
+const make = (tag, cls, text) => {
+  const el = document.createElement(tag);
+
+  if (cls) el.className = cls;
+  if (text !== undefined) el.textContent = text;
+
+  return el;
+};
+
+const safeUrl = value => {
+  try {
+    const u = new URL(value);
+
+    return (
+      u.protocol === 'https:' &&
+      (
+        u.hostname === 'res.cloudinary.com' ||
+        u.hostname.endsWith('.cloudinary.com')
+      )
+    ) ? u.href : null;
+
+  } catch {
+    return null;
+  }
+};
+
+function typeOf(rec) {
+  return (
+    rec.type === 'image' ||
+    rec.resourceType === 'image' ||
+    /\.(png|jpg|jpeg|webp|gif|heic|heif|avif)$/i.test(rec.name || '')
+  ) ? 'image' : 'video';
+}
+
+// ==================================================
+// 3. 建立照片與影片預覽
+// ==================================================
+
+function preview(url, type, name) {
+  const el = make(
+    type === 'image' ? 'img' : 'video',
+    'media'
+  );
+
+  if (type === 'image') {
+    el.src = url;
+    el.alt = name;
+    el.loading = 'lazy';
+  } else {
+    el.src = url;
+    el.controls = true;
+    el.playsInline = true;
+    el.preload = 'metadata';
+  }
+
+  return el;
+}
+
+function button(text, cls, handler) {
+  const el = make('button', 'btn ' + cls, text);
+
+  el.type = 'button';
+  el.addEventListener('click', handler);
+
+  return el;
+}
+
+// ==================================================
+// 4. 選擇照片、影片並加入上傳清單
+// ==================================================
+
+function queueFiles(files) {
+  if (uploading) return;
+
+  let added = 0;
+
+  for (const file of files) {
+    if (!isImage(file) && !isVideo(file)) {
+      notify(`不支援的檔案：${file.name}`, true);
+      continue;
+    }
+
+    if (
+      queued.some(q =>
+        q.file.name === file.name &&
+        q.file.size === file.size &&
+        q.file.lastModified === file.lastModified
+      )
+    ) {
+      continue;
+    }
+
+    queued.push({
+      file,
+      url: URL.createObjectURL(file),
+      status: '待上傳',
+      percent: 0
+    });
+
+    added++;
+  }
+
+  renderQueue();
+
+  if (added) {
+    notify(`已加入 ${added} 個檔案`);
+  }
+}
+
+function renderQueue() {
+  const grid = $('queue');
+
+  grid.replaceChildren();
+
+  $('queueSection').classList.toggle(
+    'hidden',
+    !queued.length
+  );
+
+  $('queueCount').textContent = `(${queued.length})`;
+
+  queued.forEach(q => {
+    const card = make('article', 'item');
+
+    const kind = isImage(q.file)
+      ? 'image'
+      : 'video';
+
+    card.append(
+      preview(q.url, kind, q.file.name)
+    );
+
+    const body = make('div', 'item-body');
+
+    body.append(
+      make('div', 'filename', q.file.name),
+      make(
+        'div',
+        'meta',
+        `${kind === 'image' ? '照片' : '影片'} · ${bytes(q.file.size)}`
+      )
+    );
+
+    const status = make(
+      'div',
+      'meta',
+      q.status + (q.percent ? ` ${q.percent}%` : '')
+    );
+
+    body.append(status);
+
+    const prog = make('div', 'progress');
+    const bar = make('div');
+
+    bar.style.width = q.percent + '%';
+    prog.append(bar);
+    body.append(prog);
+
+    if (q.status === '待上傳') {
+      body.append(
+        button('移除', 'outline', () => {
+          URL.revokeObjectURL(q.url);
+
+          queued.splice(queued.indexOf(q), 1);
+
+          renderQueue();
+        })
+      );
+    }
+
+    card.append(body);
+    grid.append(card);
+
+    q.update = (message, pct) => {
+      q.status = message;
+      q.percent = pct;
+
+      status.textContent =
+        message + (pct ? ` ${pct}%` : '');
+
+      bar.style.width = pct + '%';
+    };
+  });
+
+  $('uploadAll').disabled =
+    uploading ||
+    !queued.some(q =>
+      q.status === '待上傳' ||
+      q.status.startsWith('失敗')
+    );
+
+  $('clearQueue').disabled = uploading;
+}
+
+// ==================================================
+// 5. Cloudinary 原始檔案上傳
+// ==================================================
+
+function uploadOne(q) {
+  return new Promise((resolve, reject) => {
+    const form = new FormData();
+
+    form.append('file', q.file, q.file.name);
+
+    form.append(
+      'upload_preset',
+      SITE_CONFIG.cloudinaryUploadPreset
+    );
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.open(
+      'POST',
+      `https://api.cloudinary.com/v1_1/${
+        encodeURIComponent(SITE_CONFIG.cloudinaryCloudName)
+      }/auto/upload`
+    );
+
+    xhr.timeout = 1800000;
+
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable) {
+        q.update(
+          '上傳中',
+          Math.min(
+            99,
+            Math.round(e.loaded / e.total * 100)
+          )
+        );
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new Error('網路連線中斷'));
+    };
+
+    xhr.ontimeout = () => {
+      reject(new Error('上傳逾時'));
+    };
+
+    xhr.onload = () => {
+      let data = {};
+
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch {}
+
+      if (
+        xhr.status >= 200 &&
+        xhr.status < 300 &&
+        data.secure_url
+      ) {
+        resolve(data);
+      } else {
+        reject(
+          new Error(
+            data.error?.message ||
+            `Cloudinary HTTP ${xhr.status}`
+          )
+        );
+      }
+    };
+
+    xhr.send(form);
+  });
+}
+
+// ==================================================
+// 6. 全部上傳並同步 Firebase
+// ==================================================
+
+async function uploadAll() {
+  if (uploading) return;
+
+  if (!videosCol || !currentUser) {
+    notify(
+      'Firebase 尚未連線，請確認匿名登入與 Firestore 設定',
+      true
+    );
+    return;
+  }
+
+  if (
+    !SITE_CONFIG.cloudinaryCloudName ||
+    !SITE_CONFIG.cloudinaryUploadPreset
+  ) {
+    notify(
+      '請先填入 Cloudinary Cloud Name 和 Unsigned Upload Preset',
+      true
+    );
+    return;
+  }
+
+  uploading = true;
+  renderQueue();
+
+  let success = 0;
+
+  for (const q of queued) {
+    if (q.status === '已發布') continue;
+
+    q.update('準備上傳', 0);
+
+    try {
+      const data = await uploadOne(q);
+
+      q.update('雲端已上傳，寫入共用庫中', 100);
+
+      try {
+        await addDoc(videosCol, {
+          name: q.file.name,
+          url: data.secure_url,
+          type: isImage(q.file) ? 'image' : 'video',
+          resourceType: data.resource_type || 'auto',
+          publicId: data.public_id || '',
+          format: data.format || '',
+          sizeStr: bytes(q.file.size),
+          bytes: q.file.size,
+          uploaderUid: currentUser.uid,
+          createdAtMs: Date.now()
+        });
+
+        q.update('已發布', 100);
+        success++;
+
+      } catch (e) {
+        q.update('雲端成功但清單寫入失敗', 100);
+
+        notify(
+          `「${q.file.name}」已上傳至 Cloudinary，但 Firebase 寫入失敗：${e.message}`,
+          true
+        );
+      }
+
+    } catch (e) {
+      q.update('失敗，點開始上傳可重試', 0);
+
+      notify(
+        `${q.file.name} 上傳失敗：${e.message}`,
+        true
+      );
+    }
+  }
+
+  uploading = false;
+  renderQueue();
+
+  if (success) {
+    notify(`成功發布 ${success} 個檔案！`);
+  }
+}
+
+// ==================================================
+// 7. 下載照片、影片到手機
+// ==================================================
+
+function attachmentUrl(url) {
+  try {
+    const u = new URL(url);
+
+    if (u.hostname !== 'res.cloudinary.com') {
+      return url;
+    }
+
+    const match = u.pathname.match(
+      /^\/([^/]+)\/(image|video)\/upload\/(.*)$/
+    );
+
+    if (!match) return url;
+
+    u.pathname =
+      `/${match[1]}/${match[2]}/upload/fl_attachment/${match[3]}`;
+
+    return u.toString();
+
+  } catch {
+    return url;
+  }
+}
+
+async function saveFile(url, name, type, fileSize) {
+  const link = safeUrl(url);
+
+  if (!link) {
+    notify('檔案網址無效', true);
+    return;
+  }
+
+  const downloadable = attachmentUrl(link);
+
+  // 優先嘗試手機原生檔案分享功能
+  // 只在檔案大小已知且不超過 100 MiB 時，嘗試原生檔案分享；較大檔案改用下載連結。
+  const shareLimit = 100 * 1024 * 1024;
+  if (navigator.share && navigator.canShare && Number.isFinite(fileSize) && fileSize <= shareLimit) {
+    try {
+      const response = await fetch(link);
+
+      if (response.ok) {
+        const blob = await response.blob();
+
+        const file = new File(
+          [blob],
+          name || 'download',
+          {
+            type: blob.type ||
+              (type === 'image'
+                ? 'image/jpeg'
+                : 'video/mp4')
+          }
+        );
+
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: name
+          });
+
+          return;
+        }
+      }
+
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+
+      console.info(
+        '直接分享檔案不可用，改用下載或開啟原檔',
+        e
+      );
+    }
+  }
+
+  // 不支援分享功能時，改成下載原始檔案
+  const a = document.createElement('a');
+
+  a.href = downloadable;
+  a.download = name || 'download';
+  a.rel = 'noopener noreferrer';
+  a.target = '_blank';
+
+  document.body.append(a);
+  a.click();
+  a.remove();
+
+  // iPhone 下載提醒
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+    showSaveGuide(link, type);
+  }
+}
+
+function showSaveGuide(url, type) {
+  $('dialogText').textContent =
+    type === 'image'
+      ? '若沒有直接儲存，請開啟照片後長按圖片，或按 Safari 分享按鈕選擇「儲存影像」。'
+      : '若沒有直接儲存，請開啟影片後透過分享按鈕選擇「儲存影片」；部分格式只能選「儲存到檔案」。';
+
+  $('dialogOpen').onclick = () => {
+    window.open(url, '_blank', 'noopener');
+  };
+
+  if (!$('dialog').open) {
+    $('dialog').showModal();
+  }
+}
+
+// ==================================================
+// 8. 複製照片及影片分享網址
+// ==================================================
+
+async function copyUrl(url) {
+  try {
+    await navigator.clipboard.writeText(url);
+    notify('已複製原檔連結');
+
+  } catch {
+    const inp = make('input');
+
+    inp.value = url;
+    document.body.append(inp);
+    inp.select();
+
+    document.execCommand('copy');
+
+    inp.remove();
+
+    notify('已複製連結');
+  }
+}
+
+// ==================================================
+// 9. 顯示共用照片及影片
+// ==================================================
+
+function renderGallery() {
+  const kw = $('search')
+    .value.trim()
+    .toLocaleLowerCase();
+
+  const filtered = allRecords.filter(r =>
+    (r.name || '')
+      .toLocaleLowerCase()
+      .includes(kw)
+  );
+
+  $('count').textContent =
+    `${filtered.length} 個檔案`;
+
+  $('gallery').replaceChildren();
+
+  $('empty').classList.toggle(
+    'hidden',
+    filtered.length > 0
+  );
+
+  $('empty').textContent =
+    filtered.length
+      ? ''
+      : '目前沒有符合條件的檔案';
+
+  for (const rec of filtered) {
+    const url = safeUrl(rec.url);
+
+    if (!url) continue;
+
+    const type = typeOf(rec);
+    const card = make('article', 'item');
+
+    card.append(
+      preview(
+        url,
+        type,
+        rec.name || '未命名'
+      )
+    );
+
+    const body = make('div', 'item-body');
+
+    body.append(
+      make(
+        'div',
+        'filename',
+        rec.name || '未命名'
+      ),
+      make(
+        'div',
+        'meta',
+        `${type === 'image' ? '照片' : '影片'} · ${
+          rec.sizeStr ||
+          (rec.bytes ? bytes(rec.bytes) : '未知大小')
+        } · ${
+          rec.createdAtMs
+            ? new Date(rec.createdAtMs).toLocaleString('zh-TW')
+            : '未知日期'
+        }`
+      )
+    );
+
+    const actions = make('div', 'item-actions');
+
+    actions.append(
+      button(
+        '儲存到手機',
+        'green',
+        () => saveFile(url, rec.name, type, Number(rec.bytes))
+      ),
+
+      button(
+        '複製連結',
+        'outline',
+        () => copyUrl(url)
+      )
+    );
+
+    body.append(actions);
+    card.append(body);
+
+    $('gallery').append(card);
+  }
+}
+
+// ==================================================
+// 10. Firebase 初始化及資料庫即時同步
+// ==================================================
+
+async function init() {
+  try {
+    const cfg = SITE_CONFIG.firebaseConfig;
+
+    if (
+      !cfg?.apiKey ||
+      !cfg?.projectId ||
+      !cfg?.appId
+    ) {
+      throw new Error(
+        'SITE_CONFIG.firebaseConfig 欄位不完整'
+      );
+    }
+
+    const app = initializeApp(cfg);
+
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const credential = await signInAnonymously(auth);
+
+    currentUser = credential.user;
+
+    videosCol = collection(
+      db,
+      'artifacts',
+      GALLERY_ID,
+      'public',
+      'data',
+      'shared_videos'
+    );
+
+    $('status').textContent =
+      '已登入，讀取資料中';
+
+    onSnapshot(
+      videosCol,
+
+      snap => {
+        allRecords = snap.docs
+          .map(d => ({
+            id: d.id,
+            ...d.data()
+          }))
+          .sort(
+            (a, b) =>
+              (b.createdAtMs || 0) -
+              (a.createdAtMs || 0)
+          );
+
+        $('status').textContent =
+          '● 共用影音庫已連線';
+
+        renderGallery();
+      },
+
+      e => {
+        $('status').textContent = '讀取失敗';
+
+        $('empty').textContent =
+          '共用影音庫讀取失敗：' + e.message;
+
+        notify(
+          'Firestore 無法讀取，請確認安全規則：' +
+            e.message,
+          true
+        );
+      }
+    );
+
+  } catch (e) {
+    $('status').textContent =
+      'Firebase 連線失敗';
+
+    $('empty').textContent =
+      'Firebase 尚未連線';
+
+    notify(
+      `Firebase 初始化／匿名登入失敗：${e.message}`,
+      true
+    );
+
+    console.error(e);
+  }
+}
+
+// ==================================================
+// 11. 手機相簿與電腦選檔按鈕
+// ==================================================
+
+$('pickPhoto').onclick = () => $('photos').click();
+
+$('pickVideo').onclick = () => $('videos').click();
+
+$('pickBoth').onclick = () => $('both').click();
+
+$('addMore').onclick = () => $('both').click();
+
+for (const id of ['photos', 'videos', 'both']) {
+  $(id).addEventListener('change', e => {
+    queueFiles(Array.from(e.target.files || []));
+    e.target.value = '';
+  });
+}
+
+// 清空待上傳檔案
+$('clearQueue').onclick = () => {
+  if (uploading) return;
+
+  queued.forEach(q => {
+    URL.revokeObjectURL(q.url);
+  });
+
+  queued.length = 0;
+
+  renderQueue();
+};
+
+// 開始上傳
+$('uploadAll').onclick = uploadAll;
+
+// 搜尋共用影音庫
+$('search').oninput = renderGallery;
+
+// 關閉手機儲存說明
+$('dialogClose').onclick = () => {
+  $('dialog').close();
+};
+
+// ==================================================
+// 12. 電腦拖曳上傳功能
+// ==================================================
+
+for (const event of ['dragenter', 'dragover']) {
+  $('drop').addEventListener(event, e => {
+    e.preventDefault();
+    $('drop').classList.add('drag');
+  });
+}
+
+for (const event of ['dragleave', 'drop']) {
+  $('drop').addEventListener(event, e => {
+    e.preventDefault();
+    $('drop').classList.remove('drag');
+  });
+}
+
+$('drop').addEventListener('drop', e => {
+  queueFiles(
+    Array.from(e.dataTransfer?.files || [])
+  );
+});
+
+// ==================================================
+// 13. 網頁啟動
+// ==================================================
+
+init();
+
+</script>
+</body>
+</html>
